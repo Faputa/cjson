@@ -59,7 +59,7 @@ static void next() {
 				if(*p++ == '\\') p++;
 				len++;
 			}
-			if(*p) p++;//sprintf(s, "%d\n",len);
+			if(*p) p++;//printf("%d\n",len);
 			tks = (char*)malloc(sizeof(char) * (len+1));
 			int i = 0;
 			while(*_p != '"') {
@@ -161,8 +161,9 @@ void cjson_addNodeToObj(cjson_Node* obj, char *name, cjson_Node* node) {
 	cjson_Node *j = obj->child;
 	while(j != NULL) {
 		if(!strcmp(j->name, node->name)) {
+			i->next = node;
+			node->next = j->next;
 			cjson_delete(j);
-			j = node;
 			return;
 		}
 		i = j;
@@ -190,7 +191,7 @@ void cjson_delete(cjson_Node *node) {
 	free(node);
 }
 
-static void printFloat(float f, char *s) {
+static void printFloat(float f) {
 	char buf[40], *i, *j;
 	sprintf(buf, "%f", f);
 	i = buf;
@@ -201,39 +202,37 @@ static void printFloat(float f, char *s) {
 		j++;
 	}
 	*i = '\0';
-	sprintf(s, "%s", buf);
+	printf("%s", buf);
 }
 
-static void printIndent(int indent, char *s) {
-	for(int i = 0; i < indent * INDENT; i++) sprintf(s, " ");
+static void printIndent(int indent) {
+	for(int i = 0; i < indent * INDENT; i++) printf(" ");
 }
 
-static void printEndl(cjson_Node *node, char *s) {
-	sprintf(s, node->next != NULL ? ",\n" : "\n");
+static void printEndl(cjson_Node *node) {
+	printf(node->next != NULL ? ",\n" : "\n");
 }
 
-static void print(cjson_Node *node, char *s, int indent) {
-	printIndent(indent, s);
-	if(strcmp(node->name, "")) sprintf(s, "\"%s\" : ", node->name);
+static void print(cjson_Node *node, int indent) {
+	printIndent(indent);
+	if(strcmp(node->name, "")) printf("\"%s\" : ", node->name);
 	switch(node->type) {
-	case CJSON_NUL: sprintf(s, "null"); break;
-	case CJSON_FALSE: sprintf(s, "false"); break;
-	case CJSON_TRUE: sprintf(s, "true"); break;
-	case CJSON_NUM: printFloat(node->num, s); break;
-	case CJSON_STR: sprintf(s, "\"%s\"", node->str); break;
-	case CJSON_OBJ: sprintf(s, "{\n");
-		for(cjson_Node *i = node->child; i != NULL; i = i->next) print(i, s, indent + 1);
-		printIndent(indent, s); sprintf(s, "}"); break;
-	case CJSON_ARR: sprintf(s, "[\n");
-		for(cjson_Node *i = node->child; i != NULL; i = i->next) print(i, s, indent + 1);
-		printIndent(indent, s); sprintf(s, "]"); break;
+	case CJSON_NUL: printf("null"); break;
+	case CJSON_FALSE: printf("false"); break;
+	case CJSON_TRUE: printf("true"); break;
+	case CJSON_NUM: printFloat(node->num); break;
+	case CJSON_STR: printf("\"%s\"", node->str); break;
+	case CJSON_OBJ: printf("{\n");
+		for(cjson_Node *i = node->child; i != NULL; i = i->next) print(i, indent + 1);
+		printIndent(indent); printf("}"); break;
+	case CJSON_ARR: printf("[\n");
+		for(cjson_Node *i = node->child; i != NULL; i = i->next) print(i, indent + 1);
+		printIndent(indent); printf("]"); break;
 	default: printf("error12!\n"); exit(-1);
 	}
-	printEndl(node, s);
+	printEndl(node);
 }
 
-char* cjson_print(cjson_Node *node) {
-	char *strbuf = malloc(MAXSIZE * sizeof(char));
-	print(node, strbuf, 0);
-	return strbuf;
+void cjson_print(cjson_Node *node) {
+	print(node, 0);
 }

@@ -13,5 +13,5 @@ int main(int argc, char *argv[]) {
 	fclose(fp);
 	
 	cjson_Node *n = cjson_parse(p);
-	printf(cjson_print(n));
+	cjson_print(n);
 }

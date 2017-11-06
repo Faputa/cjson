@@ -17,7 +17,7 @@ typedef struct cjson_Node {
 } cjson_Node;
 
 cjson_Node* cjson_parse(char *json);
-char* cjson_print(cjson_Node *node);
+void cjson_print(cjson_Node *node);
 void cjson_delete(cjson_Node *node);
 void cjson_addNodeToArr(cjson_Node* arr, cjson_Node* node);
 void cjson_addNodeToObj(cjson_Node* obj, char *name, cjson_Node* node);
