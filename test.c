@@ -12,6 +12,5 @@ int main(int argc, char *argv[]) {
 	{ int i = fread(p, sizeof(char), MAXSIZE, fp); p[i] = '\0'; }
 	fclose(fp);
 	
-	cjson_Node *n = cjson_parse(p);
-	cjson_print(n);
+	printf(cjson_print(cjson_parse(p)));
 }
