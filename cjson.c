@@ -3,6 +3,7 @@
 #include <malloc.h>
 #include <string.h>
 #include <assert.h>
+#include <stdarg.h>
 
 #define MAXSIZE 1000
 #define INDENT 4
@@ -59,7 +60,7 @@ static void next() {
 				if(*p++ == '\\') p++;
 				len++;
 			}
-			if(*p) p++;//printf("%d\n",len);
+			if(*p) p++;
 			tks = (char*)malloc(sizeof(char) * (len+1));
 			int i = 0;
 			while(*_p != '"') {
@@ -107,14 +108,12 @@ static void parseObj(cjson_Node *node) {
 			cjson_Node *child = newNode();
 			if(tki == CJSON_STR) { child->name = tks; next(); } else { printf("error3!\n"); exit(-1); }
 			if(!strcmp(tks, ":")) next(); else { printf("error4!\n"); exit(-1); }
-			switch(tki) {
-				case CJSON_NUL: case CJSON_FALSE: case CJSON_TRUE: child->type = tki; break;
-				case CJSON_NUM: child->type = tki; child->num = atof(tks); break;
-				case CJSON_STR: child->type = tki; child->str = tks; break;
-				case CJSON_ARR: parseArr(child);
-				case CJSON_OBJ: parseObj(child);
-				default: assert(0);
-			}
+			if(tki == CJSON_NUL || tki == CJSON_FALSE || tki == CJSON_TRUE) child->type = tki;
+			else if(tki == CJSON_NUM) { child->type = tki; child->num = atof(tks); }
+			else if(tki == CJSON_STR) { child->type = tki; child->str = tks; }
+			else if(!strcmp(tks, "{")) parseObj(child);
+			else if(!strcmp(tks, "[")) parseArr(child);
+			else assert(0);
 			cjson_addNodeToObj(node, child->name, child);
 			next();
 			if(!strcmp(tks, "}")) break;
@@ -132,14 +131,12 @@ static void parseArr(cjson_Node *node) {
 		node->child = newNode();
 		node = node->child;
 		while(1) {
-			switch(tki) {
-				case CJSON_NUL: case CJSON_FALSE: case CJSON_TRUE: node->type = tki; break;
-				case CJSON_NUM: node->type = tki; node->num = atof(tks); break;
-				case CJSON_STR: node->type = tki; node->str = tks; break;
-				case CJSON_ARR: parseArr(node);
-				case CJSON_OBJ: parseObj(node);
-				default: assert(0);
-			}
+			if(tki == CJSON_NUL || tki == CJSON_FALSE || tki == CJSON_TRUE) node->type = tki;
+			else if(tki == CJSON_NUM) { node->type = tki; node->num = atof(tks); }
+			else if(tki == CJSON_STR) { node->type = tki; node->str = tks; }
+			else if(!strcmp(tks, "{")) parseObj(node);
+			else if(!strcmp(tks, "[")) parseArr(node);
+			else assert(0);
 			next();
 			if(!strcmp(tks, "]")) break;
 			else if(!strcmp(tks, ",")) { node->next = newNode(); node = node->next; next(); }
@@ -175,6 +172,7 @@ void cjson_addNodeToObj(cjson_Node* obj, char *name, cjson_Node* node) {
 cjson_Node* cjson_parse(char *json) {
 	p = json;
 	cjson_Node *node = newNode();
+	next();
 	if(!strcmp(tks, "{")) parseObj(node);
 	else if(!strcmp(tks, "[")) parseArr(node);
 	else { printf("error7!\n"); exit(-1); }
@@ -190,6 +188,14 @@ void cjson_delete(cjson_Node *node) {
 	}
 	free(node);
 }
+
+// static void catstr(char *dest, char *fmt, ...) {
+	// char *s = dest + strlen(dest);
+	// va_list args;
+	// va_start(args, fmt);
+	// sprintf(s, fmt, *args);
+	// va_end(args);
+// }
 
 static void printFloat(float f) {
 	char buf[40], *i, *j;
@@ -228,7 +234,7 @@ static void print(cjson_Node *node, int indent) {
 	case CJSON_ARR: printf("[\n");
 		for(cjson_Node *i = node->child; i != NULL; i = i->next) print(i, indent + 1);
 		printIndent(indent); printf("]"); break;
-	default: printf("error12!\n"); exit(-1);
+	default: assert(0);
 	}
 	printEndl(node);
 }
