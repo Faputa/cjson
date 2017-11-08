@@ -142,8 +142,7 @@ static cjson_Node* parseArr() {
 			else if(!strcmp(tks, "[")) child = parseArr();
 			else { printf("error2!\n"); exit(-1); }
 			// cjson_addNodeToArr(node, child);
-			if(i == NULL) node->child = child;
-			else i->next = child;
+			if(i == NULL) node->child = child; else i->next = child;
 			next();
 			if(!strcmp(tks, "]")) break;
 			else if(!strcmp(tks, ",")) { i = child; next(); }
