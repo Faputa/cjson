@@ -153,6 +153,7 @@ void cjson_addNodeToObj(cjson_Node* obj, char *name, cjson_Node* node) {
 	assert(obj != NULL);
 	assert(obj->type == CJSON_OBJ);
 	assert(node != NULL);
+	node->name = name;
 	if(obj->child == NULL) { obj->child = node; return; }
 	cjson_Node *i = obj;
 	cjson_Node *j = obj->child;
