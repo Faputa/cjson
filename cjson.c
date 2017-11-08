@@ -98,55 +98,70 @@ static cjson_Node* newNode() {
 	return node;
 }
 
-static void parseArr(cjson_Node *node);
-static void parseObj(cjson_Node *node) {
+static cjson_Node* parseArr();
+static cjson_Node* parseObj() {
 	assert(!strcmp(tks, "{"));
 	next();
+	cjson_Node *node = newNode();
 	node->type = CJSON_OBJ;
 	if(strcmp(tks, "}")) {
 		while(1) {
-			cjson_Node *child = newNode();
-			if(tki == CJSON_STR) { child->name = tks; next(); } else { printf("error3!\n"); exit(-1); }
+			cjson_Node *child;
+			char *name;
+			if(tki == CJSON_STR) { name = tks; next(); } else { printf("error3!\n"); exit(-1); }
 			if(!strcmp(tks, ":")) next(); else { printf("error4!\n"); exit(-1); }
-			if(tki == CJSON_NUL || tki == CJSON_FALSE || tki == CJSON_TRUE) child->type = tki;
-			else if(tki == CJSON_NUM) { child->type = tki; child->num = atof(tks); }
-			else if(tki == CJSON_STR) { child->type = tki; child->str = tks; }
-			else if(!strcmp(tks, "{")) parseObj(child);
-			else if(!strcmp(tks, "[")) parseArr(child);
-			else assert(0);
-			cjson_addNodeToObj(node, child->name, child);
+			if(tki == CJSON_NUL || tki == CJSON_FALSE || tki == CJSON_TRUE) { child = newNode(); child->type = tki; }
+			else if(tki == CJSON_NUM) { child = newNode(); child->type = tki; child->num = atof(tks); }
+			else if(tki == CJSON_STR) { child = newNode(); child->type = tki; child->str = tks; }
+			else if(!strcmp(tks, "{")) child = parseObj();
+			else if(!strcmp(tks, "[")) child = parseArr();
+			else { printf("error2!\n"); exit(-1); }
+			cjson_addNodeToObj(node, name, child);
 			next();
 			if(!strcmp(tks, "}")) break;
 			else if(!strcmp(tks, ",")) next();
 			else { printf("error5!\n"); exit(-1); }
 		}
 	}
+	return node;
 }
 
-static void parseArr(cjson_Node *node) {
+static cjson_Node* parseArr() {
 	assert(!strcmp(tks, "["));
 	next();
+	cjson_Node *node = newNode();
 	node->type = CJSON_ARR;
 	if(strcmp(tks, "]")) {
-		node->child = newNode();
-		node = node->child;
 		while(1) {
-			if(tki == CJSON_NUL || tki == CJSON_FALSE || tki == CJSON_TRUE) node->type = tki;
-			else if(tki == CJSON_NUM) { node->type = tki; node->num = atof(tks); }
-			else if(tki == CJSON_STR) { node->type = tki; node->str = tks; }
-			else if(!strcmp(tks, "{")) parseObj(node);
-			else if(!strcmp(tks, "[")) parseArr(node);
-			else assert(0);
+			cjson_Node *child;
+			if(tki == CJSON_NUL || tki == CJSON_FALSE || tki == CJSON_TRUE) { child = newNode(); child->type = tki; }
+			else if(tki == CJSON_NUM) { child = newNode(); child->type = tki; child->num = atof(tks); }
+			else if(tki == CJSON_STR) { child = newNode(); child->type = tki; child->str = tks; }
+			else if(!strcmp(tks, "{")) child = parseObj();
+			else if(!strcmp(tks, "[")) child = parseArr();
+			else { printf("error2!\n"); exit(-1); }
+			cjson_addNodeToArr(node, child);
 			next();
 			if(!strcmp(tks, "]")) break;
-			else if(!strcmp(tks, ",")) { node->next = newNode(); node = node->next; next(); }
+			else if(!strcmp(tks, ",")) next();
 			else { printf("error6!\n"); exit(-1); }
 		}
 	}
+	return node;
 }
 
 void cjson_addNodeToArr(cjson_Node* arr, cjson_Node* node) {
-	arr->child->next = node;
+	assert(arr != NULL);
+	assert(arr->type == CJSON_ARR);
+	assert(node != NULL);
+	if(arr->child == NULL) { arr->child = node; return; }
+	cjson_Node *i = arr;
+	cjson_Node *j = arr->child;
+	while(j != NULL) {
+		i = j;
+		j = j->next;
+	}
+	i->next = node;
 }
 
 void cjson_addNodeToObj(cjson_Node* obj, char *name, cjson_Node* node) {
@@ -172,10 +187,10 @@ void cjson_addNodeToObj(cjson_Node* obj, char *name, cjson_Node* node) {
 
 cjson_Node* cjson_parse(char *json) {
 	p = json;
-	cjson_Node *node = newNode();
+	cjson_Node *node;
 	next();
-	if(!strcmp(tks, "{")) parseObj(node);
-	else if(!strcmp(tks, "[")) parseArr(node);
+	if(!strcmp(tks, "{")) node = parseObj();
+	else if(!strcmp(tks, "[")) node = parseArr();
 	else { printf("error7!\n"); exit(-1); }
 	return node;
 }
