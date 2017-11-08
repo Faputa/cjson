@@ -132,6 +132,7 @@ static cjson_Node* parseArr() {
 	cjson_Node *node = newNode();
 	node->type = CJSON_ARR;
 	if(strcmp(tks, "]")) {
+		cjson_Node *i = NULL;
 		while(1) {
 			cjson_Node *child;
 			if(tki == CJSON_NUL || tki == CJSON_FALSE || tki == CJSON_TRUE) { child = newNode(); child->type = tki; }
@@ -140,10 +141,12 @@ static cjson_Node* parseArr() {
 			else if(!strcmp(tks, "{")) child = parseObj();
 			else if(!strcmp(tks, "[")) child = parseArr();
 			else { printf("error2!\n"); exit(-1); }
-			cjson_addNodeToArr(node, child);
+			// cjson_addNodeToArr(node, child);
+			if(i == NULL) node->child = child;
+			else i->next = child;
 			next();
 			if(!strcmp(tks, "]")) break;
-			else if(!strcmp(tks, ",")) next();
+			else if(!strcmp(tks, ",")) { i = child; next(); }
 			else { printf("error6!\n"); exit(-1); }
 		}
 	}
