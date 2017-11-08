@@ -150,20 +150,6 @@ static cjson_Node* parseArr() {
 	return node;
 }
 
-void cjson_addNodeToArr(cjson_Node* arr, cjson_Node* node) {
-	assert(arr != NULL);
-	assert(arr->type == CJSON_ARR);
-	assert(node != NULL);
-	if(arr->child == NULL) { arr->child = node; return; }
-	cjson_Node *i = arr;
-	cjson_Node *j = arr->child;
-	while(j != NULL) {
-		i = j;
-		j = j->next;
-	}
-	i->next = node;
-}
-
 void cjson_addNodeToObj(cjson_Node* obj, char *name, cjson_Node* node) {
 	assert(obj != NULL);
 	assert(obj->type == CJSON_OBJ);
@@ -179,6 +165,20 @@ void cjson_addNodeToObj(cjson_Node* obj, char *name, cjson_Node* node) {
 			cjson_delete(j);
 			return;
 		}
+		i = j;
+		j = j->next;
+	}
+	i->next = node;
+}
+
+void cjson_addNodeToArr(cjson_Node* arr, cjson_Node* node) {
+	assert(arr != NULL);
+	assert(arr->type == CJSON_ARR);
+	assert(node != NULL);
+	if(arr->child == NULL) { arr->child = node; return; }
+	cjson_Node *i = arr;
+	cjson_Node *j = arr->child;
+	while(j != NULL) {
 		i = j;
 		j = j->next;
 	}
