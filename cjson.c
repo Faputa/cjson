@@ -15,7 +15,7 @@ static void next() {
 	char *keyword[] = {
 		"null", "false", "true"
 	};
-	char *trans[] = {
+	char *escape[] = {
 		"\\n", "\n",
 		"\\\\", "\\",
 		"\\t", "\t",
@@ -65,10 +65,10 @@ static void next() {
 			int i = 0;
 			while(*_p != '"') {
 				if(*_p == '\\') {
-					for(int j = 0; j < sizeof(trans) / sizeof(*trans); j+=2) {
-						if(!strncmp(trans[j], _p, strlen(trans[j]))) {
-							tks[i] = *trans[j+1];
-							_p += strlen(trans[j]);
+					for(int j = 0; j < sizeof(escape) / sizeof(*escape); j+=2) {
+						if(!strncmp(escape[j], _p, strlen(escape[j]))) {
+							tks[i] = *escape[j+1];
+							_p += strlen(escape[j]);
 							break;
 						}
 					}
